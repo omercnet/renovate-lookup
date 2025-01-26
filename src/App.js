@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+import renovate from "renovate/package.json";
+
 export default function Lookup() {
   const [config, setConfig] = useState({});
   const [state, setState] = useState();
 
   useEffect(() => {
-    if (!config.manager)
+    if (!config)
       setConfig({
         ...config,
         manager: "npm",
@@ -93,8 +95,9 @@ export default function Lookup() {
           onChange={(e) => setConfig({ ...config, datasource: e.target.value })}
         />
       </label>
+      <h4>Renovate version: {renovate.version}</h4>
       <button type="submit" onClick={lookup}>
-        Renovate Lookup
+        Renovate Lookup Package
       </button>
       <pre>
         <code>{state && JSON.stringify(state, null, 2)}</code>
