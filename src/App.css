@@ -26,4 +26,5 @@ button {
 
 pre {
   margin-top: 20px;
+  white-space: pre-wrap;
 }
