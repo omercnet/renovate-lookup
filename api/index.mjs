@@ -8,9 +8,10 @@ import express from "express";
 
 import { mergeChildConfig } from "renovate/dist/config/utils.js";
 import { PassThrough } from "stream";
-import { initPlatform } from "renovate/dist/modules/platform/index.js";
 import { logger } from "renovate/dist/logger/index.js";
-import * as packageCache from "renovate/dist/util/cache/package/index.js";
+import { globalInitialize } from 'renovate/dist/workers/global/initialize.js';
+import { getRepositoryConfig } from 'renovate/dist/workers/global/index.js';
+
 
 import "dotenv/config";
 
@@ -34,11 +35,11 @@ app.post("/api", async (req, res) => {
   try {
     let config = await defaultsParser.parseConfigs(process.env, []);
     config = mergeChildConfig(config, req.body);
-    config = await initPlatform(config);
-    await packageCache.init(config);
+    config = await globalInitialize(config);
+    const repoConfig = await getRepositoryConfig(config, {repository: "test/test"});
 
     res.send({
-      res: await lookupUpdates(config),
+      res: await lookupUpdates(repoConfig),
       log,
     });
   } catch (err) {

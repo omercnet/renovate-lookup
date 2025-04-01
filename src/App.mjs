@@ -11,26 +11,24 @@ export default function Lookup() {
     if (Object.keys(config).length === 0)
       setConfig({
         ...config,
-        manager: "npm",
-        versioning: "npm",
-        rangeStrategy: "replace",
         currentValue: "3.7.0",
         depName: "webpack",
         datasource: "npm",
-        registryUrl: "https://registry.npmjs.org",
       });
   }, [config]);
 
   const lookup = async (e) => {
     e.preventDefault();
     try {
+      if (!config.packageName) config.packageName = config.depName;
+      
       setState({ msg: "loading.." });
       const response = await fetch("/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(config),
+        body: JSON.stringify({...config, registryUrls: config.registryUrls?.split(",")}),
       });
       setState(await response.json());
     } catch (err) {
@@ -64,7 +62,7 @@ export default function Lookup() {
         "versioning",
         "rangeStrategy",
         "datasource",
-        "registryUrl",
+        "registryUrls",
       ].map(configKey)}
       <h4>Renovate version: {renovate.version}</h4>
       <button type="submit" onClick={lookup}>
