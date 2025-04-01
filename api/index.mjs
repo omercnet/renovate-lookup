@@ -23,7 +23,7 @@ const logStream = new PassThrough();
 const log = [];
 logger.addStream({
   name: "dev",
-  level: "info",
+  level: "debug",
   stream: logStream,
 });
 
@@ -36,11 +36,12 @@ app.post("/api", async (req, res) => {
     let config = await defaultsParser.parseConfigs(process.env, []);
     config = mergeChildConfig(config, req.body);
     config = await globalInitialize(config);
-    const repoConfig = await getRepositoryConfig(config, {repository: "test/test"});
+    if (Object.hasOwn(config, 'repository'))
+      config = await getRepositoryConfig(config, {repository: config.repository});
 
     res.send({
-      res: await lookupUpdates(repoConfig),
-      log,
+      res: await lookupUpdates(config),
+      log: log.filter((l) => l.err),
     });
   } catch (err) {
     var errMessage = `${err}`;

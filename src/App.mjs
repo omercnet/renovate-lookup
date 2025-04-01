@@ -63,6 +63,7 @@ export default function Lookup() {
         "rangeStrategy",
         "datasource",
         "registryUrls",
+        "repository",
       ].map(configKey)}
       <h4>Renovate version: {renovate.version}</h4>
       <button type="submit" onClick={lookup}>
