@@ -1,29 +1,12 @@
-import { mergeChildConfig } from "renovate/dist/config/utils.js";
-import { init as initLogger } from "renovate/dist/logger/index.js";
-import { clear as clearHostRules } from "renovate/dist/util/host-rules.js";
-import * as defaultsParser from "renovate/dist/workers/global/config/parse/index.js";
-import { getRepositoryConfig } from "renovate/dist/workers/global/index.js";
-import { globalFinalize, globalInitialize } from "renovate/dist/workers/global/initialize.js";
-import { lookupUpdates } from "renovate/dist/workers/repository/process/lookup/index.js";
 import renovatePackage from "renovate/package.json" with { type: "json" };
 import { InputError, parseLookupInput } from "./validate.ts";
 
 const MAX_BODY_BYTES = 16 * 1024;
-let queue = Promise.resolve();
-await initLogger();
+let runtime: Promise<typeof import("./runtime.ts")> | undefined;
 
-async function exclusively<T>(operation: () => Promise<T>): Promise<T> {
-	const previous = queue;
-	let release!: () => void;
-	queue = new Promise<void>((resolve) => {
-		release = resolve;
-	});
-	await previous;
-	try {
-		return await operation();
-	} finally {
-		release();
-	}
+function loadRuntime(): Promise<typeof import("./runtime.ts")> {
+	runtime ??= import("./runtime.ts");
+	return runtime;
 }
 
 function json(value: unknown, status = 200): Response {
@@ -53,32 +36,12 @@ async function readJson(request: Request): Promise<unknown> {
 	}
 }
 
-async function runLookup(raw: unknown): Promise<unknown> {
-	const input = parseLookupInput(raw);
-	return exclusively(async () => {
-		clearHostRules();
-		let config = await defaultsParser.parseConfigs(process.env, []);
-		if (!input.repository) config = mergeChildConfig(config, { platform: "local" });
-		config = mergeChildConfig(config, input);
-		let initialized = false;
-		try {
-			config = await globalInitialize(config);
-			initialized = true;
-			if (input.repository) config = await getRepositoryConfig(config, input.repository);
-			const result = await lookupUpdates(config);
-			return result.unwrapOrThrow();
-		} finally {
-			if (initialized) await globalFinalize(config);
-			clearHostRules();
-		}
-	});
-}
-
 export async function handleLookup(request: Request): Promise<Response> {
 	if (request.method === "GET") return json({ renovateVersion: renovatePackage.version });
 	if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 	try {
-		const result = await runLookup(await readJson(request));
+		const input = parseLookupInput(await readJson(request));
+		const result = await (await loadRuntime()).runLookup(input);
 		return json({ renovateVersion: renovatePackage.version, result });
 	} catch (error) {
 		if (error instanceof InputError) return json({ error: error.message }, 400);

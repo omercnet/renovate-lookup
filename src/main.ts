@@ -83,6 +83,14 @@ function payloadFromForm(): Record<string, unknown> {
 	return payload;
 }
 
+async function readApiResponse(response: Response): Promise<ApiResponse> {
+	const contentType = response.headers.get("content-type") ?? "";
+	if (!contentType.includes("application/json")) {
+		throw new Error(`Lookup service returned HTTP ${response.status}`);
+	}
+	return (await response.json()) as ApiResponse;
+}
+
 function renderResult(result: LookupResult, request: Record<string, unknown>): void {
 	content.replaceChildren();
 	const heading = element("div", "result-heading");
@@ -166,7 +174,7 @@ form.addEventListener("submit", async (event) => {
 			body: JSON.stringify(payload),
 			signal: activeRequest.signal,
 		});
-		const data = (await response.json()) as ApiResponse;
+		const data = await readApiResponse(response);
 		if (!response.ok) throw new Error(data.error ?? `Lookup failed with HTTP ${response.status}`);
 		if (!data.result) throw new Error("The server returned no lookup result");
 		if (data.renovateVersion) version.textContent = data.renovateVersion;
@@ -184,7 +192,7 @@ form.addEventListener("submit", async (event) => {
 });
 
 fetch("/api")
-	.then((response) => response.json() as Promise<ApiResponse>)
+	.then(readApiResponse)
 	.then((data) => {
 		if (data.renovateVersion) version.textContent = data.renovateVersion;
 	})
