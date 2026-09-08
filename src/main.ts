@@ -72,7 +72,6 @@ function payloadFromForm(): Record<string, unknown> {
 		"versioning",
 		"rangeStrategy",
 		"datasource",
-		"repository",
 	]) {
 		const value = data.get(key);
 		if (typeof value === "string" && value.trim()) payload[key] = value.trim();

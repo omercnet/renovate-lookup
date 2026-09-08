@@ -1,12 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { InputError, parseLookupInput } from "./validate.ts";
+import { InputError, parseLookupInput } from "./validate.js";
 
-const originalRepositorySetting = process.env.LOOKUP_ENABLE_REPOSITORY;
 const originalRegistries = process.env.LOOKUP_ALLOWED_REGISTRIES;
 
 afterEach(() => {
-	if (originalRepositorySetting === undefined) delete process.env.LOOKUP_ENABLE_REPOSITORY;
-	else process.env.LOOKUP_ENABLE_REPOSITORY = originalRepositorySetting;
 	if (originalRegistries === undefined) delete process.env.LOOKUP_ALLOWED_REGISTRIES;
 	else process.env.LOOKUP_ALLOWED_REGISTRIES = originalRegistries;
 });
@@ -59,14 +56,13 @@ describe("parseLookupInput", () => {
 		).toEqual(["https://packages.example.com/npm/"]);
 	});
 
-	test("keeps repository lookups opt-in", () => {
-		delete process.env.LOOKUP_ENABLE_REPOSITORY;
+	test("rejects repository context instead of accepting platform credentials", () => {
 		expect(() =>
 			parseLookupInput({
 				depName: "x",
 				datasource: "npm",
 				repository: "owner/repo",
 			}),
-		).toThrow("Repository-aware lookup is not enabled");
+		).toThrow("Unknown field: repository");
 	});
 });

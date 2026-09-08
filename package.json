@@ -18,12 +18,12 @@
 	"dependencies": {
 		"renovate": "44.69.7"
 	},
+	"engines": {
+		"node": "24.x"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.12",
 		"@types/bun": "1.4.2",
 		"typescript": "5.9.3"
-	},
-	"overrides": {
-		"re2": "file:stubs/re2"
 	}
 }

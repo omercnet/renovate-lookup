@@ -9,7 +9,6 @@ export type LookupInput = {
 	versioning?: string;
 	rangeStrategy?: string;
 	registryUrls?: string[];
-	repository?: string;
 	separateMinorPatch?: boolean;
 };
 
@@ -24,7 +23,6 @@ const allowedKeys = new Set([
 	"versioning",
 	"rangeStrategy",
 	"registryUrls",
-	"repository",
 	"separateMinorPatch",
 ]);
 
@@ -102,13 +100,6 @@ export function parseLookupInput(value: unknown): LookupInput {
 
 	const depName = readRequiredString(body, "depName", 200);
 	const datasource = readRequiredString(body, "datasource", 64);
-	const repository = readString(body, "repository", { max: 200 });
-	if (repository && !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
-		throw new InputError("repository must use owner/name format");
-	}
-	if (repository && process.env.LOOKUP_ENABLE_REPOSITORY !== "true") {
-		throw new InputError("Repository-aware lookup is not enabled on this server");
-	}
 	if (body.separateMinorPatch !== undefined && typeof body.separateMinorPatch !== "boolean") {
 		throw new InputError("separateMinorPatch must be a boolean");
 	}
@@ -124,7 +115,6 @@ export function parseLookupInput(value: unknown): LookupInput {
 		versioning: readString(body, "versioning", { max: 64 }),
 		rangeStrategy: readString(body, "rangeStrategy", { max: 64 }),
 		registryUrls: readRegistries(body),
-		repository,
 		separateMinorPatch: body.separateMinorPatch as boolean | undefined,
 	};
 }

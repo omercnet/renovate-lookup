@@ -31,7 +31,7 @@ bun run check
 }
 ```
 
-Optional fields are `packageName`, `currentVersion`, `currentDigest`, `manager`, `versioning`, `rangeStrategy`, `registryUrls`, `repository`, and `separateMinorPatch`. Unknown Renovate configuration is rejected rather than merged into server configuration.
+Optional fields are `packageName`, `currentVersion`, `currentDigest`, `manager`, `versioning`, `rangeStrategy`, `registryUrls`, and `separateMinorPatch`. Unknown Renovate configuration is rejected rather than merged into server configuration.
 
 `GET /api` returns the installed Renovate version.
 
@@ -40,14 +40,11 @@ Optional fields are `packageName`, `currentVersion`, `currentDigest`, `manager`,
 | Variable | Purpose |
 | --- | --- |
 | `LOOKUP_ALLOWED_REGISTRIES` | Comma-separated HTTPS origins accepted in `registryUrls`. Defaults to `https://registry.npmjs.org`. |
-| `LOOKUP_ENABLE_REPOSITORY=true` | Enables repository-aware lookup. Disabled by default. |
-| `RENOVATE_TOKEN` | Platform token required for repository-aware lookup. Never accepted from the request. |
-| `RENOVATE_PLATFORM` | Fixed platform used for repository-aware lookup. |
 
-Registry credentials belong in server-side Renovate host rules. Credentials embedded in request URLs are discarded.
+Credentials embedded in request URLs are discarded. Repository context and platform credentials are intentionally unsupported.
 
 ## Deployment
 
-The project targets Vercel's Bun 1.4 runtime. `bun run build` emits the static frontend to `dist`; `api/server.ts` is the Bun function behind `/api`.
+The project uses Bun for installs, local development, tests, and the static frontend build. The lookup engine runs in a Node.js 24 Vercel Function because Renovate officially targets Node.js. `bun run build` emits the frontend to `dist`; `api/index.ts` serves `/api`.
 
 Renovate is pinned exactly because this project calls internal `renovate/dist/**` modules. Dependency updates must pass `bun run check` and a real lookup smoke test.
