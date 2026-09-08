@@ -2,10 +2,10 @@ import renovatePackage from "renovate/package.json" with { type: "json" };
 import { InputError, parseLookupInput } from "./validate.ts";
 
 const MAX_BODY_BYTES = 16 * 1024;
-let runtime: Promise<typeof import("./runtime.ts")> | undefined;
+let runtime: Promise<typeof import("./runtime.js")> | undefined;
 
-function loadRuntime(): Promise<typeof import("./runtime.ts")> {
-	runtime ??= import("./runtime.ts");
+function loadRuntime(): Promise<typeof import("./runtime.js")> {
+	runtime ??= import("./runtime.js");
 	return runtime;
 }
 

@@ -15,7 +15,7 @@ Bun.serve({
 				return Response.json({ renovateVersion: RENOVATE_VERSION });
 			}
 			try {
-				const { handleLookup } = await import("./lookup.ts");
+				const { handleLookup } = await import("./lookup.js");
 				return handleLookup(request);
 			} catch (error) {
 				return runtimeError(error);
