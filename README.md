@@ -1,70 +1,50 @@
-# Getting Started with Create React App
+# Renovate Lookup
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A small web UI for running Renovate datasource lookups directly. It shows the same update candidates Renovate sees without creating a repository or waiting for a bot run.
 
-## Available Scripts
+## Run locally
 
-In the project directory, you can run:
+Requires Bun 1.4.
 
-### `yarn start`
+```sh
+bun install
+bun run dev
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open <http://localhost:3000>. The development server hot-reloads the TypeScript and CSS frontend and serves the API from the same origin.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```sh
+bun run check
+```
 
-### `yarn test`
+`check` runs Biome with warnings treated as errors, strict TypeScript checking, Bun tests, and the production frontend build. Use `bun run lint:fix` to apply safe lint and import fixes, or `bun run format` for formatting only.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## API
 
-### `yarn build`
+`POST /api` accepts JSON:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```json
+{
+  "depName": "webpack",
+  "currentValue": "3.7.0",
+  "datasource": "npm"
+}
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Optional fields are `packageName`, `currentVersion`, `currentDigest`, `manager`, `versioning`, `rangeStrategy`, `registryUrls`, and `separateMinorPatch`. Unknown Renovate configuration is rejected rather than merged into server configuration.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+`GET /api` returns the installed Renovate version.
 
-### `yarn eject`
+## Configuration
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Variable | Purpose |
+| --- | --- |
+| `LOOKUP_ALLOWED_REGISTRIES` | Comma-separated HTTPS origins accepted in `registryUrls`. Defaults to `https://registry.npmjs.org`. |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Credentials embedded in request URLs are discarded. Repository context and platform credentials are intentionally unsupported.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Deployment
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The project uses Bun for installs, local development, tests, and the static frontend build. The lookup engine runs in a Node.js 24 Vercel Function because Renovate officially targets Node.js. `bun run build` emits the frontend to `dist`; `api/index.ts` serves `/api`.
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Renovate is pinned exactly because this project calls internal `renovate/dist/**` modules. Dependency updates must pass `bun run check` and a real lookup smoke test.

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f7fb" />
+    <meta name="description" content="Inspect the updates Renovate sees for any package." />
+    <title>Renovate Lookup</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module" src="./src/main.ts"></script>
+  </head>
+  <body>
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="Renovate Lookup home">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <span>renovate<span class="brand-light">lookup</span></span>
+      </a>
+      <div class="runtime">Renovate <span id="renovate-version" class="runtime-value">...</span></div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Package intelligence / live query</p>
+        <h1 id="page-title">See what Renovate sees.</h1>
+        <p class="lede">Run a real datasource lookup without waiting for a bot job. The response comes directly from the installed Renovate version.</p>
+      </section>
+
+      <div class="workspace">
+        <form id="lookup-form" class="query-panel">
+          <div class="panel-heading">
+            <span class="panel-index">QUERY</span>
+            <span class="panel-rule"></span>
+          </div>
+
+          <label class="field field-primary">
+            <span>Package name</span>
+            <input name="depName" value="webpack" placeholder="e.g. react" required autocomplete="off" spellcheck="false" />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Current value</span>
+              <input name="currentValue" value="3.7.0" placeholder="e.g. ^19.0.0" autocomplete="off" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>Datasource</span>
+              <select name="datasource">
+                <option value="npm">npm</option>
+                <option value="pypi">pypi</option>
+                <option value="docker">docker</option>
+                <option value="github-releases">github-releases</option>
+                <option value="github-tags">github-tags</option>
+                <option value="go">go</option>
+                <option value="maven">maven</option>
+                <option value="crate">crate</option>
+                <option value="rubygems">rubygems</option>
+              </select>
+            </label>
+          </div>
+
+          <details>
+            <summary>Lookup options <span class="summary-note">optional</span></summary>
+            <div class="details-grid">
+              <label class="field">
+                <span>Package alias</span>
+                <input name="packageName" placeholder="Defaults to package name" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span>Versioning</span>
+                <input name="versioning" placeholder="Datasource default" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span>Manager</span>
+                <input name="manager" placeholder="e.g. npm" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span>Range strategy</span>
+                <select name="rangeStrategy">
+                  <option value="">Default</option>
+                  <option value="auto">auto</option>
+                  <option value="bump">bump</option>
+                  <option value="pin">pin</option>
+                  <option value="replace">replace</option>
+                  <option value="widen">widen</option>
+                </select>
+              </label>
+              <label class="field field-wide">
+                <span>Registry URL</span>
+                <input name="registryUrls" placeholder="https://registry.npmjs.org/" type="url" autocomplete="off" />
+                <small>Only server-approved origins are accepted.</small>
+              </label>
+              <label class="check field-wide">
+                <input name="separateMinorPatch" type="checkbox" />
+                <span>Separate minor and patch updates</span>
+              </label>
+            </div>
+          </details>
+
+          <button id="submit-button" type="submit">
+            <span class="button-label">Look up updates</span>
+            <span class="button-arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <section class="result-panel" aria-live="polite" aria-labelledby="result-title">
+          <div class="panel-heading">
+            <span class="panel-index">RESULT</span>
+            <span class="panel-rule"></span>
+            <span id="result-status" class="status">READY</span>
+          </div>
+          <h2 id="result-title" class="sr-only">Lookup result</h2>
+          <div id="result-empty" class="empty-state">
+            <div class="empty-glyph" aria-hidden="true">→</div>
+            <p>Enter a package and run the lookup.</p>
+            <span>Updates will appear here as a version path.</span>
+          </div>
+          <div id="result-content" hidden></div>
+          <div id="result-error" class="error-state" hidden></div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <span>Live Renovate datasource output</span>
+      <a href="https://docs.renovatebot.com/modules/datasource/" rel="noreferrer">Datasource reference ↗</a>
+    </footer>
+  </body>
+</html>
