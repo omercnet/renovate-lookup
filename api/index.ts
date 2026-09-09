@@ -30,22 +30,24 @@ async function readBody(request: VercelRequest): Promise<unknown> {
 		throw new InputError("Content-Type must be application/json");
 	}
 
-	if (request.body !== undefined) {
-		const rawBody =
-			typeof request.body === "string"
-				? request.body
-				: Buffer.isBuffer(request.body)
-					? request.body.toString("utf8")
-					: undefined;
-		if (rawBody !== undefined) {
-			if (Buffer.byteLength(rawBody) > MAX_BODY_BYTES)
-				throw new InputError("Request body is too large");
-			return parseJson(rawBody);
-		}
+	try {
+		const body = request.body;
+		if (body !== undefined) {
+			const rawBody =
+				typeof body === "string" ? body : Buffer.isBuffer(body) ? body.toString("utf8") : undefined;
+			if (rawBody !== undefined) {
+				if (Buffer.byteLength(rawBody) > MAX_BODY_BYTES)
+					throw new InputError("Request body is too large");
+				return parseJson(rawBody);
+			}
 
-		const size = Buffer.byteLength(JSON.stringify(request.body));
-		if (size > MAX_BODY_BYTES) throw new InputError("Request body is too large");
-		return request.body;
+			const size = Buffer.byteLength(JSON.stringify(body));
+			if (size > MAX_BODY_BYTES) throw new InputError("Request body is too large");
+			return body;
+		}
+	} catch (error) {
+		if (isInputError(error)) throw error;
+		throw new InputError("Request body is not valid JSON");
 	}
 
 	const chunks: Buffer[] = [];
