@@ -6,6 +6,14 @@ const MAX_BODY_BYTES = 16 * 1024;
 
 type VercelRequest = IncomingMessage & { body?: unknown };
 
+function parseJson(value: string): unknown {
+	try {
+		return JSON.parse(value);
+	} catch {
+		throw new InputError("Request body is not valid JSON");
+	}
+}
+
 function send(response: ServerResponse, status: number, body: unknown): void {
 	response.writeHead(status, {
 		"cache-control": "no-store",
@@ -23,6 +31,18 @@ async function readBody(request: VercelRequest): Promise<unknown> {
 	}
 
 	if (request.body !== undefined) {
+		const rawBody =
+			typeof request.body === "string"
+				? request.body
+				: Buffer.isBuffer(request.body)
+					? request.body.toString("utf8")
+					: undefined;
+		if (rawBody !== undefined) {
+			if (Buffer.byteLength(rawBody) > MAX_BODY_BYTES)
+				throw new InputError("Request body is too large");
+			return parseJson(rawBody);
+		}
+
 		const size = Buffer.byteLength(JSON.stringify(request.body));
 		if (size > MAX_BODY_BYTES) throw new InputError("Request body is too large");
 		return request.body;
@@ -37,11 +57,7 @@ async function readBody(request: VercelRequest): Promise<unknown> {
 		chunks.push(buffer);
 	}
 
-	try {
-		return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-	} catch {
-		throw new InputError("Request body is not valid JSON");
-	}
+	return parseJson(Buffer.concat(chunks).toString("utf8"));
 }
 
 export default async function handler(
