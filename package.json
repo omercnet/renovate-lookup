@@ -7,7 +7,7 @@
 	"scripts": {
 		"dev": "bun --hot server.ts",
 		"start": "bun server.ts",
-		"build": "bun build index.html --outdir=dist --minify --target=browser",
+		"build": "bun build index.html --outdir=dist --minify --target=browser && cp public/llms.txt public/openapi.json dist/",
 		"lint": "biome check . --error-on-warnings",
 		"lint:fix": "biome check . --write",
 		"format": "biome format . --write",

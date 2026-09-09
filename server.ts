@@ -1,4 +1,4 @@
-import { executeLookup, renovateVersion } from "./api/service.js";
+import { executeLookup, renovateVersion, serviceDiscovery } from "./api/service.js";
 import { InputError } from "./api/validate.js";
 import homepage from "./index.html";
 
@@ -10,12 +10,13 @@ function json(body: unknown, status = 200): Response {
 		headers: {
 			"cache-control": "no-store",
 			"x-content-type-options": "nosniff",
+			link: '</llms.txt>; rel="describedby", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json"',
 		},
 	});
 }
 
 async function handleLookup(request: Request): Promise<Response> {
-	if (request.method === "GET") return json({ renovateVersion });
+	if (request.method === "GET") return json(serviceDiscovery);
 	try {
 		const contentType = request.headers.get("content-type") ?? "";
 		if (!contentType.toLowerCase().startsWith("application/json")) {
@@ -43,6 +44,14 @@ const server = Bun.serve({
 	development: process.env.NODE_ENV !== "production",
 	routes: {
 		"/": homepage,
+		"/llms.txt": () =>
+			new Response(Bun.file("public/llms.txt"), {
+				headers: { "content-type": "text/plain; charset=utf-8" },
+			}),
+		"/openapi.json": () =>
+			new Response(Bun.file("public/openapi.json"), {
+				headers: { "content-type": "application/json; charset=utf-8" },
+			}),
 		"/api": {
 			GET: handleLookup,
 			POST: handleLookup,

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { executeLookup, renovateVersion } from "./service.js";
+import { executeLookup, renovateVersion, serviceDiscovery } from "./service.js";
 import { InputError } from "./validate.js";
 
 const MAX_BODY_BYTES = 16 * 1024;
@@ -11,6 +11,7 @@ function send(response: ServerResponse, status: number, body: unknown): void {
 		"cache-control": "no-store",
 		"content-type": "application/json; charset=utf-8",
 		"x-content-type-options": "nosniff",
+		link: '</llms.txt>; rel="describedby", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json"',
 	});
 	response.end(JSON.stringify(body));
 }
@@ -48,7 +49,7 @@ export default async function handler(
 	response: ServerResponse,
 ): Promise<void> {
 	if (request.method === "GET") {
-		send(response, 200, { renovateVersion });
+		send(response, 200, serviceDiscovery);
 		return;
 	}
 	if (request.method !== "POST") {

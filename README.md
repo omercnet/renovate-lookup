@@ -19,21 +19,22 @@ bun run check
 
 `check` runs Biome with warnings treated as errors, strict TypeScript checking, Bun tests, and the production frontend build. Use `bun run lint:fix` to apply safe lint and import fixes, or `bun run format` for formatting only.
 
-## API
+## Agent and API access
 
-`POST /api` accepts JSON:
+- `GET /llms.txt` gives agents a concise usage guide.
+- `GET /openapi.json` returns the OpenAPI 3.1 contract.
+- `GET /api` returns a small JSON discovery document.
+- `POST /api` performs a lookup and returns `{ "renovateVersion": "...", "result": ... }`.
 
-```json
-{
-  "depName": "webpack",
-  "currentValue": "3.7.0",
-  "datasource": "npm"
-}
+Example:
+
+```sh
+curl -sS http://localhost:3000/api \
+  -H 'Content-Type: application/json' \
+  -d '{"depName":"webpack","currentValue":"3.7.0","datasource":"npm"}'
 ```
 
-Optional fields are `packageName`, `currentVersion`, `currentDigest`, `manager`, `versioning`, `rangeStrategy`, `registryUrls`, and `separateMinorPatch`. Unknown Renovate configuration is rejected rather than merged into server configuration.
-
-`GET /api` returns the installed Renovate version.
+`packageName` defaults to `depName`. Optional fields are `currentVersion`, `currentDigest`, `manager`, `versioning`, `rangeStrategy`, `registryUrls`, and `separateMinorPatch`. Unknown Renovate configuration is rejected rather than merged into server configuration.
 
 ## Configuration
 
@@ -45,6 +46,6 @@ Credentials embedded in request URLs are discarded. Repository context and platf
 
 ## Deployment
 
-The project uses Bun for installs, local development, tests, and the static frontend build. The lookup engine runs in a Node.js 24 Vercel Function because Renovate officially targets Node.js. `bun run build` emits the frontend to `dist`; `api/index.ts` serves `/api`.
+The project uses Bun for installs, local development, tests, and the static frontend build. The lookup engine runs in a Node.js 24 Vercel Function because Renovate officially targets Node.js. `bun run build` emits the frontend and agent discovery files to `dist`; `api/index.ts` serves `/api`.
 
 Renovate is pinned exactly because this project calls internal `renovate/dist/**` modules. Dependency updates must pass `bun run check` and a real lookup smoke test.
