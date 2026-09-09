@@ -3,6 +3,25 @@ import { parseLookupInput } from "./validate.js";
 
 export const renovateVersion = renovatePackage.version;
 
+export const serviceDiscovery = {
+	name: "Renovate Lookup API",
+	description: "Run a Renovate package update lookup with JSON input and output.",
+	apiVersion: "1.0.0",
+	renovateVersion,
+	documentation: "/llms.txt",
+	openapi: "/openapi.json",
+	endpoint: {
+		method: "POST",
+		path: "/api",
+		contentType: "application/json",
+	},
+	example: {
+		depName: "webpack",
+		currentValue: "3.7.0",
+		datasource: "npm",
+	},
+} as const;
+
 let runtime: Promise<typeof import("./runtime.js")> | undefined;
 
 function loadRuntime(): Promise<typeof import("./runtime.js")> {

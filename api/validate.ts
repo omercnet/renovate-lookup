@@ -26,7 +26,15 @@ const allowedKeys = new Set([
 	"separateMinorPatch",
 ]);
 
-export class InputError extends Error {}
+export class InputError extends Error {
+	override readonly name = "InputError";
+}
+
+export function isInputError(value: unknown): value is InputError {
+	if (!value || typeof value !== "object") return false;
+	const error = value as { message?: unknown; name?: unknown };
+	return error.name === "InputError" && typeof error.message === "string";
+}
 
 function readString(
 	body: Record<string, unknown>,

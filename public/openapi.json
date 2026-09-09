@@ -1,0 +1,235 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Renovate Lookup API",
+		"version": "1.0.0",
+		"description": "Run Renovate's package update lookup with validated JSON input and output. No authentication is required."
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	],
+	"paths": {
+		"/api": {
+			"get": {
+				"operationId": "getApiDiscovery",
+				"summary": "Discover the API",
+				"responses": {
+					"200": {
+						"description": "Service metadata, installed Renovate version, and canonical documentation links",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Discovery"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "lookupPackageUpdates",
+				"summary": "Look up package updates with Renovate",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LookupRequest"
+							},
+							"examples": {
+								"npm": {
+									"summary": "Look up webpack releases",
+									"value": {
+										"depName": "webpack",
+										"currentValue": "3.7.0",
+										"datasource": "npm"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Renovate lookup output",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LookupResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid content type, JSON, request size, field, or registry URL",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "The upstream package lookup failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"LookupRequest": {
+				"type": "object",
+				"required": ["depName", "datasource"],
+				"properties": {
+					"depName": {
+						"type": "string",
+						"maxLength": 200,
+						"description": "Dependency name as it appears in the package file."
+					},
+					"packageName": {
+						"type": "string",
+						"maxLength": 200,
+						"description": "Datasource package name when it differs from depName. Defaults to depName."
+					},
+					"datasource": {
+						"type": "string",
+						"maxLength": 64,
+						"description": "Renovate datasource identifier, for example npm."
+					},
+					"currentValue": {
+						"type": "string",
+						"maxLength": 256,
+						"description": "Current version or version range."
+					},
+					"currentVersion": {
+						"type": "string",
+						"maxLength": 256
+					},
+					"currentDigest": {
+						"type": "string",
+						"maxLength": 256
+					},
+					"manager": {
+						"type": "string",
+						"maxLength": 64,
+						"description": "Renovate manager identifier."
+					},
+					"versioning": {
+						"type": "string",
+						"maxLength": 64,
+						"description": "Renovate versioning scheme."
+					},
+					"rangeStrategy": {
+						"type": "string",
+						"maxLength": 64,
+						"description": "Renovate range strategy."
+					},
+					"registryUrls": {
+						"type": "array",
+						"maxItems": 5,
+						"items": {
+							"type": "string",
+							"format": "uri",
+							"maxLength": 512
+						},
+						"description": "HTTPS registry URLs whose origins are allowed by the server."
+					},
+					"separateMinorPatch": {
+						"type": "boolean"
+					}
+				},
+				"additionalProperties": false
+			},
+			"LookupResponse": {
+				"type": "object",
+				"required": ["renovateVersion", "result"],
+				"properties": {
+					"renovateVersion": {
+						"type": "string"
+					},
+					"result": {
+						"type": "object",
+						"description": "Renovate lookup result, including updates, warnings, and an optional skipReason.",
+						"additionalProperties": true
+					}
+				}
+			},
+			"ErrorResponse": {
+				"type": "object",
+				"required": ["error"],
+				"properties": {
+					"error": {
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			},
+			"Discovery": {
+				"type": "object",
+				"required": [
+					"name",
+					"description",
+					"apiVersion",
+					"renovateVersion",
+					"documentation",
+					"openapi",
+					"endpoint",
+					"example"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"apiVersion": {
+						"type": "string"
+					},
+					"renovateVersion": {
+						"type": "string"
+					},
+					"documentation": {
+						"type": "string",
+						"format": "uri-reference"
+					},
+					"openapi": {
+						"type": "string",
+						"format": "uri-reference"
+					},
+					"endpoint": {
+						"type": "object",
+						"required": ["method", "path", "contentType"],
+						"properties": {
+							"method": {
+								"const": "POST"
+							},
+							"path": {
+								"const": "/api"
+							},
+							"contentType": {
+								"const": "application/json"
+							}
+						},
+						"additionalProperties": false
+					},
+					"example": {
+						"$ref": "#/components/schemas/LookupRequest"
+					}
+				},
+				"additionalProperties": false
+			}
+		}
+	}
+}

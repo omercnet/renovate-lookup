@@ -1,0 +1,24 @@
+# Renovate Lookup
+
+> Renovate Lookup runs Renovate's package update lookup for one dependency. It provides a browser interface and an unauthenticated JSON API.
+
+Use `POST /api` with `Content-Type: application/json`. `depName` and `datasource` are required. `packageName` defaults to `depName`; include `currentValue` for a normal version lookup. The response contains the installed `renovateVersion` and Renovate's output in `result`.
+
+Example request:
+
+```sh
+curl -sS https://<host>/api \
+  -H 'Content-Type: application/json' \
+  -d '{"depName":"webpack","currentValue":"3.7.0","datasource":"npm"}'
+```
+
+Unknown fields are rejected. Custom `registryUrls` must use HTTPS and an origin allowed by the server. Do not invent package versions or registry URLs. Read `result.updates`, `result.warnings`, and optional `result.skipReason` as Renovate's lookup result.
+
+## API
+
+- [OpenAPI description](/openapi.json): Machine-readable request and response contract with examples.
+- [API discovery document](/api): Small JSON index with the installed Renovate version and canonical links.
+
+## Human interface
+
+- [Renovate Lookup](/): Browser interface for the same lookup operation.

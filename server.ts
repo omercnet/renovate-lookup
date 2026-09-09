@@ -1,5 +1,5 @@
-import { executeLookup, renovateVersion } from "./api/service.js";
-import { InputError } from "./api/validate.js";
+import { executeLookup, renovateVersion, serviceDiscovery } from "./api/service.js";
+import { InputError, isInputError } from "./api/validate.js";
 import homepage from "./index.html";
 
 const MAX_BODY_BYTES = 16 * 1024;
@@ -10,12 +10,13 @@ function json(body: unknown, status = 200): Response {
 		headers: {
 			"cache-control": "no-store",
 			"x-content-type-options": "nosniff",
+			link: '</llms.txt>; rel="describedby", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json"',
 		},
 	});
 }
 
 async function handleLookup(request: Request): Promise<Response> {
-	if (request.method === "GET") return json({ renovateVersion });
+	if (request.method === "GET") return json(serviceDiscovery);
 	try {
 		const contentType = request.headers.get("content-type") ?? "";
 		if (!contentType.toLowerCase().startsWith("application/json")) {
@@ -28,7 +29,7 @@ async function handleLookup(request: Request): Promise<Response> {
 		const result = await executeLookup(JSON.parse(text));
 		return json({ renovateVersion, result });
 	} catch (error) {
-		if (error instanceof InputError) return json({ error: error.message }, 400);
+		if (isInputError(error)) return json({ error: error.message }, 400);
 		if (error instanceof SyntaxError) return json({ error: "Request body is not valid JSON" }, 400);
 		console.error("Renovate lookup failed", error);
 		return json(
@@ -43,6 +44,14 @@ const server = Bun.serve({
 	development: process.env.NODE_ENV !== "production",
 	routes: {
 		"/": homepage,
+		"/llms.txt": () =>
+			new Response(Bun.file("public/llms.txt"), {
+				headers: { "content-type": "text/plain; charset=utf-8" },
+			}),
+		"/openapi.json": () =>
+			new Response(Bun.file("public/openapi.json"), {
+				headers: { "content-type": "application/json; charset=utf-8" },
+			}),
 		"/api": {
 			GET: handleLookup,
 			POST: handleLookup,
