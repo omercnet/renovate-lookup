@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { executeLookup, renovateVersion, serviceDiscovery } from "./service.js";
-import { InputError } from "./validate.js";
+import { InputError, isInputError } from "./validate.js";
 
 const MAX_BODY_BYTES = 16 * 1024;
 
@@ -61,7 +61,7 @@ export default async function handler(
 		const result = await executeLookup(await readBody(request));
 		send(response, 200, { renovateVersion, result });
 	} catch (error) {
-		if (error instanceof InputError) {
+		if (isInputError(error)) {
 			send(response, 400, { error: error.message });
 			return;
 		}

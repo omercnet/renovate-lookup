@@ -1,5 +1,5 @@
 import { executeLookup, renovateVersion, serviceDiscovery } from "./api/service.js";
-import { InputError } from "./api/validate.js";
+import { InputError, isInputError } from "./api/validate.js";
 import homepage from "./index.html";
 
 const MAX_BODY_BYTES = 16 * 1024;
@@ -29,7 +29,7 @@ async function handleLookup(request: Request): Promise<Response> {
 		const result = await executeLookup(JSON.parse(text));
 		return json({ renovateVersion, result });
 	} catch (error) {
-		if (error instanceof InputError) return json({ error: error.message }, 400);
+		if (isInputError(error)) return json({ error: error.message }, 400);
 		if (error instanceof SyntaxError) return json({ error: "Request body is not valid JSON" }, 400);
 		console.error("Renovate lookup failed", error);
 		return json(
