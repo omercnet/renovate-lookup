@@ -31,7 +31,9 @@ export class InputError extends Error {
 }
 
 export function isInputError(value: unknown): value is InputError {
-	return value instanceof Error && value.name === "InputError";
+	if (!value || typeof value !== "object") return false;
+	const error = value as { message?: unknown; name?: unknown };
+	return error.name === "InputError" && typeof error.message === "string";
 }
 
 function readString(
