@@ -81,6 +81,10 @@ export default async function handler(
 			send(response, 400, { error: error.message });
 			return;
 		}
+		if (error instanceof Error && error.name === "SyntaxError") {
+			send(response, 400, { error: "Request body is not valid JSON" });
+			return;
+		}
 		console.error("Renovate lookup failed", error);
 		send(response, 502, {
 			error: "Lookup failed. Check the package, datasource, version, and registry settings.",
