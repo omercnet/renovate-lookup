@@ -19,7 +19,7 @@
 		"renovate": "44.175.5"
 	},
 	"engines": {
-		"node": "24.x"
+		"node": "26.x"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.6.8",
